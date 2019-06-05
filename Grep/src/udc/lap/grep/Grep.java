@@ -24,15 +24,12 @@ public class Grep {
 	public static void main(String[] args) {
 
 		try {
-			argsIllegal(args);					// captura los argumentos y almacena en las variables estaticas
-												// comprueba que sean correctas
+			argsIllegal(args); // captura los argumentos y almacena en las variables estaticas
+								// comprueba que sean correctas
 			for (String string : Grep.search()) {
-				System.out.println(string);		// busca "Grep.grepStr" e imprime los rengroles que lo contengan
+				System.out.println(string); // busca "Grep.grepStr" e imprime los rengroles que lo contengan
 			}
-		} catch (IllegalArgumentException e) {			// manejo de excepciones
-			System.out.println(e.getMessage());
-		} catch (FileNotFoundException e) {
-			System.out.println("No encontro el Archivo");
+		} catch (IllegalArgumentException e) { // manejo de excepciones
 			System.out.println(e.getMessage());
 		} catch (UnsupportedEncodingException e) {
 			System.out.println("encoding " + e.getMessage() + " Invalido");
@@ -44,16 +41,16 @@ public class Grep {
 	private static void argsIllegal(String[] args) throws IllegalArgumentException {
 		int m = 0, n = 0;
 		for (String string : args) {
-			if (string.startsWith("-")) {		// analisa las [OPTIONS].
+			if (string.startsWith("-")) { // analisa las [OPTIONS].
 				switch (string) {
 				case "-i":
 				case "--ignore-case":
-					Grep.ignoreCase = true;		// que ignore si son mayusculas o minusculas
+					Grep.ignoreCase = true; // que ignore si son mayusculas o minusculas
 					break;
 				case "-ie":
 				case "--input-encoding":
-					Grep.inputEncoding = true;	// contiene encoding
-					n = m + 1;					// se asegura que encoding este en el argunento siguiente de la cadena args
+					Grep.inputEncoding = true; // contiene encoding
+					n = m + 1; // se asegura que encoding este en el argunento siguiente de la cadena args
 					break;
 				default:
 					Grep.ignoreCase = false;
@@ -62,21 +59,22 @@ public class Grep {
 				}
 			}
 			if (!(string.startsWith(".") || string.contains("*") || string.contains("/") || string.startsWith("-"))) {
-				if (inputEncoding && n == m)	// se asegura que encoding este en el argunento siguiente de la cadena args
-					Grep.encodingStr = string;	// captura el "encodingStr"
+				if (inputEncoding && n == m) // se asegura que encoding este en el argunento siguiente de la cadena args
+					Grep.encodingStr = string; // captura el "encodingStr"
 				else
-					Grep.patternStr = string;	// captura "patternStr"
+					Grep.patternStr = string; // captura "patternStr"
 				if (!inputEncoding)
 					Grep.encodingStr = null;
 			}
 			if (string.startsWith(".") || string.contains("*") || string.contains("/"))
-				Grep.pathnameStr.add(string);	// captura el "pathnameStr" de [FILE...]
+				Grep.pathnameStr.add(string); // captura el "pathnameStr" de [FILE...]
 			m++;
 		}
 		if (Grep.pathnameStr.size() >= 2)
 			Grep.moreFile = true;
 		if (Grep.patternStr == null)
-			throw new IllegalArgumentException("Error, nesesita el archivo \"PATTERN\""+"\n"+"\"Grep requiere \"grep [OPTIONS] PATTERN [FILE...] \"");
+			throw new IllegalArgumentException("Error, nesesita el archivo \"PATTERN\"" + "\n"
+					+ "\"Grep requiere \"grep [OPTIONS] PATTERN [FILE...] \"");
 	}
 
 	private static List<String> search() throws IOException {
@@ -101,16 +99,13 @@ public class Grep {
 
 					Charset charset = Grep.inputEncoding ? Charset.forName(Grep.encodingStr) : Charset.defaultCharset();
 					/*
-					BufferedReader br = Files.newBufferedReader(path, charset);
-					String line;
-					while (br.ready()) { // recorre el archivo
-						line = br.readLine();
-						if (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
-							output.add(Grep.moreFile ? file.getName() + ": " + line : line); // devuelve verdadeto si lee mas de un archivo
-						} // guarda en un lista linea por linea las conisidencia
-					}
-					br.close();
-					*/
+					 * BufferedReader br = Files.newBufferedReader(path, charset); String line;
+					 * while (br.ready()) { // recorre el archivo line = br.readLine(); if
+					 * (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
+					 * output.add(Grep.moreFile ? file.getName() + ": " + line : line); // devuelve
+					 * verdadeto si lee mas de un archivo } // guarda en un lista linea por linea
+					 * las conisidencia } br.close();
+					 */
 					for (String line : Files.readAllLines(path, charset)) {
 						if (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
 							output.add(Grep.moreFile ? file.getName() + ": " + line : line); // devuelve verdadeto si
@@ -125,14 +120,14 @@ public class Grep {
 	}
 
 	private static boolean contains(String str) {
-		if (str == null || Grep.patternStr == null)				// verifica que los argumentos no sean nulos
+		if (str == null || Grep.patternStr == null) // verifica que los argumentos no sean nulos
 			return false;
 
-		final int length = Grep.patternStr.length();			// verifica que "searchStr" contentiene algun caracter
+		final int length = Grep.patternStr.length(); // verifica que "searchStr" contentiene algun caracter
 		if (length == 0)
 			return true;
 
-		for (int i = str.length() - length; i >= 0; i--) {		// verifiva que "str" contentiene a "searchStr"
+		for (int i = str.length() - length; i >= 0; i--) { // verifiva que "str" contentiene a "searchStr"
 			if (str.regionMatches(Grep.ignoreCase, i, Grep.patternStr, 0, length))
 				return true;
 		}
