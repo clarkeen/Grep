@@ -1,8 +1,10 @@
 package udc.lap.grep;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -27,7 +29,7 @@ public class Grep {
 			for (String string : Grep.search()) {
 				System.out.println(string);		// busca "Grep.grepStr" e imprime los rengroles que lo contengan
 			}
-		} catch (IllegalArgumentEx e) {			// manejo de excepciones
+		} catch (IllegalArgumentException e) {			// manejo de excepciones
 			System.out.println(e.getMessage());
 		} catch (FileNotFoundException e) {
 			System.out.println("No encontro el Archivo");
@@ -39,10 +41,8 @@ public class Grep {
 		}
 	}
 
-	private static void argsIllegal(String[] args) throws IllegalArgumentEx {
+	private static void argsIllegal(String[] args) throws IllegalArgumentException {
 		int m = 0, n = 0;
-		if (args.length < 2)
-			throw new IllegalArgumentEx(1);
 		for (String string : args) {
 			if (string.startsWith("-")) {		// analisa las [OPTIONS].
 				switch (string) {
@@ -75,36 +75,52 @@ public class Grep {
 		}
 		if (Grep.pathnameStr.size() >= 2)
 			Grep.moreFile = true;
-		if (Grep.pathnameStr.size() == 1)
-			Grep.moreFile = false;
-		if (Grep.pathnameStr.size() == 0)
-			throw new IllegalArgumentEx(2);
 		if (Grep.patternStr == null)
-			throw new IllegalArgumentEx(3);
+			throw new IllegalArgumentException("Error, nesesita el archivo \"PATTERN\""+"\n"+"\"Grep requiere \"grep [OPTIONS] PATTERN [FILE...] \"");
 	}
 
 	private static List<String> search() throws IOException {
 		List<String> output = new ArrayList<>();
 
-		for (int i = 0; i < Grep.pathnameStr.size(); i++) {
-			File file = new File(Grep.pathnameStr.get(i));
-			Path path = Paths.get(file.getParent(),file.getName());
-			
-			Charset charset;
-			if (Grep.inputEncoding)
-				charset = Charset.forName(Grep.encodingStr);
-			else
-				charset = Charset.defaultCharset();
+		if (pathnameStr.size() == 0) {
+			InputStreamReader isr = new InputStreamReader(System.in);
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			while ((line = br.readLine()) != null) { // recorre el archivo
+				if (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
+					System.out.println(line); // devuelve verdadeto si lee mas de un archivo
+				} // guarda en un lista linea por linea las conisidencia
+			}
+			br.close();
+			isr.close();
+		} else
+			for (int i = 0; i < Grep.pathnameStr.size(); i++) {
+				try {
+					File file = new File(Grep.pathnameStr.get(i));
+					Path path = Paths.get(file.getParent(), file.getName());
 
-			for (String line : Files.readAllLines(path, charset)) {
-				if (Grep.contains(line)) {								// busca la coisidencia sea el caso "isIgnoreCase"
-					if (Grep.moreFile)									// devuelve verdadeto si lee mas de un archivo
-						output.add(file.getName() + ": " + line);		// guarda en un lista linea por linea las conisidencia
-					else
-						output.add(line);
+					Charset charset = Grep.inputEncoding ? Charset.forName(Grep.encodingStr) : Charset.defaultCharset();
+					/*
+					BufferedReader br = Files.newBufferedReader(path, charset);
+					String line;
+					while (br.ready()) { // recorre el archivo
+						line = br.readLine();
+						if (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
+							output.add(Grep.moreFile ? file.getName() + ": " + line : line); // devuelve verdadeto si lee mas de un archivo
+						} // guarda en un lista linea por linea las conisidencia
+					}
+					br.close();
+					*/
+					for (String line : Files.readAllLines(path, charset)) {
+						if (Grep.contains(line)) { // busca la coisidencia sea el caso "isIgnoreCase"
+							output.add(Grep.moreFile ? file.getName() + ": " + line : line); // devuelve verdadeto si
+																								// lee mas de un archivo
+						} // guarda en un lista linea por linea las conisidencia
+					}
+				} catch (FileNotFoundException e) {
+					output.add(e.getMessage());
 				}
 			}
-		}
 		return output;
 	}
 
